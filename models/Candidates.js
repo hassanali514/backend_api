@@ -45,7 +45,28 @@ const candidatesSchema = new mongoose.Schema({
     owner:{
         type: mongoose.Schema.Types.ObjectId,
         ref:"Admins"
-    }
+    },
+    passportImage: {
+        type: [String],
+        required: true
+    },
+    imageUrl: {
+        type: String,
+        required: true
+    },
+    visaImageUrl: {
+        type: String,
+    },
+    cvImageUrl: {
+        type: String,
+    },
+    cnicImageUrl: {
+        type: String,
+        required: true
+    },
+    licenseImageUrl: {
+        type: String,
+    },
 })
 
 module.exports = mongoose.model("candidates",candidatesSchema);

@@ -116,7 +116,7 @@ exports.forgetAdminPassword = async (req, res) => {
         }
 
         const resetPasswordToken = admin.getResetPasswordToken();
-
+        console.log("Response Token: ",resetPasswordToken )
         await admin.save();
 
         const resetUrl = `${req.protocol}://${req.get("host")}/api/v1/password/reset/${resetPasswordToken}`;

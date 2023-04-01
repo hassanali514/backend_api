@@ -1,8 +1,74 @@
 const Candidate = require("../models/Candidates");
+const path = require("path");
 const Admins = require("../models/Admins");
-
+const {
+	checkMissingAttributes,
+	checkEmptyAttributes,
+} = require("../utils/requestBody");
 exports.createCandidate = async (req, res) => {
     try {
+
+        const requestBody = [
+			"name",
+            "fatherName",
+            "passportNo",
+            "dateOfBirth",
+            "passportExpiryDate",
+            "nationality",
+            "trade",
+            "careOf",
+            "status",
+			];
+			const requestFiles = ["passportImage", "imageUrl", "cnicImageUrl"];
+            const imageFormats = JSON.parse(process.env.IMAGE_FORMATS);
+			if(req.files.visaImageUrl){
+				requestFiles.push("visaImageUrl")
+			}
+            if(req.files.cvImageUrl){
+				requestFiles.push("cvImageUrl")
+			}
+            if(req.files.licenseImageUrl){
+				requestFiles.push("licenseImageUrl")
+			}
+			const missingAttribute = checkMissingAttributes(req.body, requestBody);
+			if (missingAttribute != null) {
+				return res.status(400).json({
+					success: false,
+					message: missingAttribute + " not found in request body!",
+				});
+			}
+			const emptyAttributes = checkEmptyAttributes(req.body, requestBody);
+			if (emptyAttributes != null) {
+				return res.status(400).json({
+					success: false,
+					message: emptyAttributes + " was empty in request body!",
+				});
+			}
+			const missingFiles = checkMissingAttributes(req.files, requestFiles);
+			if (missingFiles != null) {
+				return res.status(400).json({
+					success: false,
+					message: missingFiles + " is missing in request files!",
+				});
+			}
+			
+			if (req.body.royaltyFee && req.body.royaltyFee < 0 || req.body.royaltyFee > 100){
+				fileManager.DeleteFile(req.files.thumbnail[0].path);
+				return res.status(400).json({
+					success: false,
+					message:  "Inappropriate royalty fees value set. It must be a percentage.",
+				});
+			}
+
+            let extension = path.extname(req.files.imageUrl[0].originalname);
+            console.log("Extension : ", extension)
+            if (imageFormats.indexOf(extension) === -1){
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid format of image Url."
+                })
+            }
+        console.log("FIles : ", req.files)
 
         const candidateData = {
             name: req.body.name,
@@ -14,7 +80,10 @@ exports.createCandidate = async (req, res) => {
             trade: req.body.trade,
             careOf: req.body.careOf,
             status: req.body.status,
-            owner: req.admin._id
+            owner: req.admin._id,
+            imageUrl: req.files.imageUrl[0].path,
+            passportImage: req.files.passportImage[0].path,
+            cnicImageUrl: req.files.cnicImageUrl[0].path
         }
 
         const newCandidate = await Candidate.create(candidateData);
